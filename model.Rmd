@@ -1,0 +1,77 @@
+---
+title: "Light pollution model"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+require(ggplot2)
+require(knitr)
+#install.packages("")
+#rm(list=ls())
+```
+
+```{r}
+lp_data = read.csv('E:\\Karolina\\TI\\Semestr9\\ED\\Projekt\\lightpollution\\lp\\db.csv', sep=';', dec='.', header=TRUE, stringsAsFactors = TRUE)
+piotr_guzik_data <- lp_data[with(lp_data, grepl("Piotr Guzik", lp_data$name)),]
+timemeasureastext <- as.Date(piotr_guzik_data [,7], format="%Y-%m-%d")
+```
+
+## Regression
+```{r}
+# lm(sqm~viirs_2015_1_mean, data=piotr_guzik_data)
+```
+
+## Including Plots
+
+```{r plot, echo=TRUE}
+ggplot(piotr_guzik_data, aes(x=timemeasureastext, y=sqm)) + xlab("Date") + ylab("SQM(L) [mag/arcsec^2]") + geom_point(color="blue")
+ggplot(piotr_guzik_data, aes(x=sqm)) + xlab("SQM(L)") + geom_histogram(binwidth=0.1, col='blue')
+
+## Radius - 1 km
+ggplot(piotr_guzik_data, aes(x=viirs_2015_1_stddev)) + xlab("VIRS 2015 (1 km) Standard Devation [10^-9W/cm^2*sr]") + geom_histogram(binwidth=0.3, col='blue')
+ggplot(piotr_guzik_data, aes(x=viirs_2015_1_mean)) + xlab ("VIRS 2015 (1 km) Mean  [10^-9W/cm^2*sr]") + geom_histogram(binwidth=0.3, col='blue')
+ggplot(piotr_guzik_data, aes(x=viirs_2015_1_min)) + xlab("VIRS 2015 (1 km) Min  [10^-9W/cm^2*sr]") + geom_histogram(binwidth=0.3, col='blue')
+ggplot(piotr_guzik_data, aes(x=viirs_2015_1_max)) + xlab("VIRS 2015 (1 km) Max  [10^-9W/cm^2*sr]") + geom_histogram(binwidth=0.3, col='blue')
+
+## Radius - 2 km
+ggplot(piotr_guzik_data, aes(x=viirs_2015_2_stddev)) + xlab("VIRS 2015 (2 km) Standard Devation [10^-9W/cm^2*sr]") + geom_histogram(binwidth=0.3, col='blue')
+ggplot(piotr_guzik_data, aes(x=viirs_2015_2_mean)) + xlab("VIRS 2015 (2 km) Mean  [10^-9W/cm^2*sr]") + geom_histogram(binwidth=0.3, col='blue')
+ggplot(piotr_guzik_data, aes(x=viirs_2015_2_min)) + xlab("VIRS 2015 (2 km) Min  [10^-9W/cm^2*sr]") + geom_histogram(binwidth=0.3, col='blue')
+ggplot(piotr_guzik_data, aes(x=viirs_2015_2_max)) + xlab("VIRS 2015 (2 km) Max  [10^-9W/cm^2*sr]") + geom_histogram(binwidth=0.3, col='blue')
+
+## Radius - 5 km
+ggplot(piotr_guzik_data, aes(x=viirs_2015_5_stddev)) + xlab( "VIRS 2015 (5 km) Standard Devation [10^-9W/cm^2*sr]") + geom_histogram(binwidth=0.3, col='blue')
+ggplot(piotr_guzik_data, aes(x=viirs_2015_5_mean)) + xlab("VIRS 2015 (5 km) Mean  [10^-9W/cm^2*sr]") + geom_histogram(binwidth=0.3, col='blue')
+ggplot(piotr_guzik_data, aes(x=viirs_2015_5_min)) + xlab("VIRS 2015 (5 km) Min  [10^-9W/cm^2*sr]") + geom_histogram(binwidth=0.3, col='blue')
+ggplot(piotr_guzik_data, aes(x=viirs_2015_5_max)) + xlab("VIRS 2015 (5 km) Max  [10^-9W/cm^2*sr]") + geom_histogram(binwidth=0.3, col='blue')
+
+## Radius - 10 km
+ggplot(piotr_guzik_data, aes(x=viirs_2015_10_stddev)) + xlab("VIRS 2015 (10 km) Standard Devation [10^-9W/cm^2*sr]") + geom_histogram(binwidth=0.3, col='blue')
+ggplot(piotr_guzik_data, aes(x=viirs_2015_10_mean)) + xlab("VIRS 2015 (10 km) Mean  [10^-9W/cm^2*sr]") + geom_histogram(binwidth=0.3, col='blue')
+ggplot(piotr_guzik_data, aes(x=viirs_2015_10_min)) + xlab("VIRS 2015 (10 km) Min  [10^-9W/cm^2*sr]") + geom_histogram(binwidth=0.3, col='blue')
+ggplot(piotr_guzik_data, aes(x=viirs_2015_10_max)) + xlab("VIRS 2015 (10 km) Max  [10^-9W/cm^2*sr]") + geom_histogram(binwidth=0.3, col='blue')
+
+## Radius - 20 km
+ggplot(piotr_guzik_data, aes(x=viirs_2015_20_stddev)) + xlab("VIRS 2015 (5 km) Standard Devation [10^-9W/cm^2*sr]") + geom_histogram(binwidth=0.3, col='blue')
+ggplot(piotr_guzik_data, aes(x=viirs_2015_20_mean)) + xlab("VIRS 2015 (5 km) Mean  [10^-9W/cm^2*sr]") + geom_histogram(binwidth=0.3, col='blue')
+ggplot(piotr_guzik_data, aes(x=viirs_2015_20_min)) + xlab("VIRS 2015 (5 km) Min  [10^-9W/cm^2*sr]") + geom_histogram(binwidth=0.3, col='blue')
+ggplot(piotr_guzik_data, aes(x=viirs_2015_20_max)) + xlab("VIRS 2015 (5 km) Max  [10^-9W/cm^2*sr]") + geom_histogram(binwidth=0.3, col='blue')
+
+## Radius - 50 km
+ggplot(piotr_guzik_data, aes(x=viirs_2015_50_stddev)) + xlab("VIRS 2015 (50 km) Standard Devation [10^-9W/cm^2*sr]") + geom_histogram(binwidth=0.3, col='blue')
+ggplot(piotr_guzik_data, aes(x=viirs_2015_50_mean)) + xlab("VIRS 2015 (50 km) Mean  [10^-9W/cm^2*sr]") + geom_histogram(binwidth=0.3, col='blue')
+ggplot(piotr_guzik_data, aes(x=viirs_2015_50_min)) + xlab("VIRS 2015 (50 km) Min  [10^-9W/cm^2*sr]") + geom_histogram(binwidth=0.3, col='blue')
+ggplot(piotr_guzik_data, aes(x=viirs_2015_50_max)) + xlab("VIRS 2015 (50 km) Max  [10^-9W/cm^2*sr]") + geom_histogram(binwidth=0.3, col='blue')
+
+## Radius - 100 km
+ggplot(piotr_guzik_data, aes(x=viirs_2015_100_stddev)) + xlab("VIRS 2015 (100 km) Standard Devation [10^-9W/cm^2*sr]") + geom_histogram(binwidth=0.3, col='blue')
+ggplot(piotr_guzik_data, aes(x=viirs_2015_100_mean)) + xlab("VIRS 2015 (100 km) Mean  [10^-9W/cm^2*sr]") + geom_histogram(binwidth=0.3, col='blue')
+ggplot(piotr_guzik_data, aes(x=viirs_2015_100_min)) + xlab("VIRS 2015 (100 km) Min  [10^-9W/cm^2*sr]") + geom_histogram(binwidth=0.3, col='blue')
+ggplot(piotr_guzik_data, aes(x=viirs_2015_100_max)) + xlab("VIRS 2015 (100 km) Max  [10^-9W/cm^2*sr]") + geom_histogram(binwidth=0.3, col='blue')
+
+
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
