@@ -7,18 +7,21 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 require(ggplot2)
 require(knitr)
+require(oce)
 #install.packages("")
-rm(list=ls())
+#rm(list=ls())
 ```
 
 ```{r}
-lp_data = read.csv('lp/db.csv', sep=';', dec='.', header=TRUE, stringsAsFactors = TRUE)
-lp_data <- lp_data[with(lp_data, grepl("Piotr Guzik", lp_data$name)),]
-lp_data <- lp_data[lp_data$viirs_2015_1_mean > 0,]
-dates <- as.Date(lp_data$timemeasuretext, format="%Y-%m-%d")
-lp_data <- lp_data[dates > "2015-01-01", ]
-dates <- as.Date(lp_data$timemeasuretext, format="%Y-%m-%d")
-lp_data$sqm <- 10.8 * 10^8 * 10 ^(- 0.4 *(lp_data$sqm))
+lp_data = read.csv('lp/db.csv', sep=';', dec='.', header=TRUE, stringsAsFactors = TRUE, encoding = "UTF-8")
+lp_data$sqm = 10.8 * 10^8 * 10 ^(- 0.4 *(lp_data$sqm))
+lp_data$time = as.POSIXct(lp_data$timemeasure, format="%Y-%m-%dT%H:%M:%S", tz="UTC")
+lp_data$moon_frac = moonAngle(lp_data$time, lp_data$lon, lp_data$lat)$illuminatedFraction
+lp_data$moon_alt = moonAngle(lp_data$time, lp_data$lon, lp_data$lat)$altitude
+lp_data$sun_alt = sunAngle(lp_data$time, lp_data$lon, lp_data$lat)$altitude
+lp_data = lp_data[lp_data$time > "2015-01-01", ]
+lp_data = lp_data[lp_data$viirs_2015_1_mean > 0,]
+lp_data = lp_data[with(lp_data, grepl("Piotr Guzik", lp_data$name)),]
 ```
 
 ## Including Plots
@@ -41,8 +44,8 @@ ggplot(lp_data, aes(y=sqm, x=viirs_2015_100_mean)) + ylab(ylabel) + xlab("VIRS 2
 
 ## Regression
 ```{r}
-mylm <- lm(sqm~viirs_2015_1_mean + viirs_2015_2_mean + viirs_2015_5_mean + viirs_2015_10_mean + viirs_2015_20_mean + viirs_2015_50_mean + viirs_2015_100_mean, data=lp_data)
-#anova(mylm)
+mylm <- lm(sqm~viirs_2015_1_mean + viirs_2015_2_mean + viirs_2015_5_mean + viirs_2015_10_mean + viirs_2015_20_mean + viirs_2015_50_mean + viirs_2015_100_mean + moon_alt*moon_frac + sun_alt, data=lp_data)
+
 summary(mylm)
 ```
 
