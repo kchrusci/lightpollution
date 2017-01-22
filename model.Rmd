@@ -8,7 +8,7 @@ knitr::opts_chunk$set(echo = TRUE)
 require(ggplot2)
 require(knitr)
 #install.packages("")
-#rm(list=ls())
+rm(list=ls())
 ```
 
 ```{r}
@@ -18,57 +18,31 @@ lp_data <- lp_data[lp_data$viirs_2015_1_mean > 0,]
 dates <- as.Date(lp_data$timemeasuretext, format="%Y-%m-%d")
 lp_data <- lp_data[dates > "2015-01-01", ]
 dates <- as.Date(lp_data$timemeasuretext, format="%Y-%m-%d")
-#lp_data <- lp_data[10.8 * 10^4 * 10 ^(- 0.4 *(lp_data$sqm))]
+lp_data$sqm <- 10.8 * 10^8 * 10 ^(- 0.4 *(lp_data$sqm))
 ```
 
 ## Including Plots
 
 ```{r plot, echo=TRUE}
+#ylabel = "SQM(L) [mag/arcsec^2]"
+ylabel = "[SQM(L) 10^-9W/cm^2*sr]"
 ggplot(lp_data, aes(x=sqm)) + xlab("SQM(L)") + geom_histogram(binwidth=0.1, col='blue') + labs(title="Histogram")
-#ggplot(lp_data, aes(x=dates, y=sqm)) + xlab("Date") + ylab("SQM(L) [mag/arcsec^2]") + geom_point(color="blue", alpha=0.1)
 
 ## VIRS(sqm) for 1, 2, 5, 10, 20, 50, 100 [km]
-ggplot(lp_data, aes(y=sqm, x=viirs_2015_1_mean)) + ylab("SQM(L) [mag/arcsec^2]") + xlab("VIRS 2015 (1 km) Mean  [10^-9W/cm^2*sr]") + geom_point(color="blue", alpha=0.1) + xlim(0,10)
-ggplot(lp_data, aes(y=sqm, x=viirs_2015_2_mean)) + ylab("SQM(L) [mag/arcsec^2]") + xlab("VIRS 2015 (2 km) Mean  [10^-9W/cm^2*sr]") + geom_point(color="blue", alpha=0.1) + xlim(0,10)
-ggplot(lp_data, aes(y=sqm, x=viirs_2015_5_mean)) + ylab("SQM(L) [mag/arcsec^2]") + xlab("VIRS 2015 (5 km) Mean  [10^-9W/cm^2*sr]") + geom_point(color="blue", alpha=0.1) + xlim(0,10)
-ggplot(lp_data, aes(y=sqm, x=viirs_2015_10_mean)) + ylab("SQM(L) [mag/arcsec^2]") + xlab("VIRS 2015 (10 km) Mean [10^-9W/cm^2*sr]") + geom_point(color="blue", alpha=0.1) + xlim(0,10)
-ggplot(lp_data, aes(y=sqm, x=viirs_2015_20_mean)) + ylab("SQM(L) [mag/arcsec^2]") + xlab("VIRS 2015 (20 km) Mean [10^-9W/cm^2*sr]") + geom_point(color="blue", alpha=0.1) + xlim(0,10)
-ggplot(lp_data, aes(y=sqm, x=viirs_2015_50_mean)) + ylab("SQM(L) [mag/arcsec^2]") + xlab("VIRS 2015 (50 km) Mean [10^-9W/cm^2*sr]") + geom_point(color="blue", alpha=0.1) + xlim(0,10)
-ggplot(lp_data, aes(y=sqm, x=viirs_2015_100_mean)) + ylab("SQM(L) [mag/arcsec^2]") + xlab("VIRS 2015 (100 km) Mean [10^-9W/cm^2*sr]") + geom_point(color="blue", alpha=0.1) + xlim(0,10)
+ggplot(lp_data, aes(y=sqm, x=viirs_2015_1_mean)) + ylab(ylabel) + xlab("VIRS 2015 (1 km) Mean  [10^-9W/cm^2*sr]") + geom_point(color="blue", alpha=0.1) + xlim(0,10) + ylim(0,20)
+ggplot(lp_data, aes(y=sqm, x=viirs_2015_2_mean)) + ylab(ylabel) + xlab("VIRS 2015 (2 km) Mean  [10^-9W/cm^2*sr]") + geom_point(color="blue", alpha=0.1) + xlim(0,10) + ylim(0,20)
+ggplot(lp_data, aes(y=sqm, x=viirs_2015_5_mean)) + ylab(ylabel) + xlab("VIRS 2015 (5 km) Mean  [10^-9W/cm^2*sr]") + geom_point(color="blue", alpha=0.1) + xlim(0,10) +  ylim(0,20)
+ggplot(lp_data, aes(y=sqm, x=viirs_2015_10_mean)) + ylab(ylabel) + xlab("VIRS 2015 (10 km) Mean [10^-9W/cm^2*sr]") + geom_point(color="blue", alpha=0.1) + xlim(0,10) +  ylim(0,20)
+ggplot(lp_data, aes(y=sqm, x=viirs_2015_20_mean)) + ylab(ylabel) + xlab("VIRS 2015 (20 km) Mean [10^-9W/cm^2*sr]") + geom_point(color="blue", alpha=0.1) + xlim(0,10) +  ylim(0,20)
+ggplot(lp_data, aes(y=sqm, x=viirs_2015_50_mean)) + ylab(ylabel) + xlab("VIRS 2015 (50 km) Mean [10^-9W/cm^2*sr]") + geom_point(color="blue", alpha=0.1) + xlim(0,10) +  ylim(0,20)
+ggplot(lp_data, aes(y=sqm, x=viirs_2015_100_mean)) + ylab(ylabel) + xlab("VIRS 2015 (100 km) Mean [10^-9W/cm^2*sr]") + geom_point(color="blue", alpha=0.1) + xlim(0,10) +  ylim(0,20)
 
-## Histograms
-#ggplot(lp_data, aes(x=viirs_2015_1_mean)) + xlab ("VIRS 2015 (1 km) Mean  [10^-9W/cm^2*sr]") + geom_histogram(binwidth=0.3, col='blue') + labs(title="Histogram  (R=1km) VIRS 2015 Mean")
-
-#ggplot(lp_data, aes(x=viirs_2015_2_mean)) + xlab("VIRS 2015 (2 km) Mean  [10^-9W/cm^2*sr]") + geom_histogram(binwidth=0.3, col='blue') + labs(title="Histogram (R=2km) VIRS 2015 Mean")
-
-#ggplot(lp_data, aes(x=viirs_2015_5_mean)) + xlab("VIRS 2015 (5 km) Mean  [10^-9W/cm^2*sr]") + geom_histogram(binwidth=0.3, col='blue') + labs(title="Histogram (R=5km) VIRS 2015 Mean")
-
-#ggplot(lp_data, aes(x=viirs_2015_10_mean)) + xlab("VIRS 2015 (10 km) Mean  [10^-9W/cm^2*sr]") + geom_histogram(binwidth=0.3, col='blue') + labs(title="Histogram (R=10km) VIRS 2015 Mean")
-
-#ggplot(lp_data, aes(x=viirs_2015_20_mean)) + xlab("VIRS 2015 (5 km) Mean  [10^-9W/cm^2*sr]") + geom_histogram(binwidth=0.3, col='blue') + labs(title="Histogram (R=20km) VIRS 2015 Mean")
-
-#ggplot(lp_data, aes(x=viirs_2015_50_mean)) + xlab("VIRS 2015 (50 km) Mean  [10^-9W/cm^2*sr]") + geom_histogram(binwidth=0.3, col='blue') + labs(title="Histogram (R=50km) VIRS 2015 Mean")
-
-#ggplot(lp_data, aes(x=viirs_2015_100_mean)) + xlab("VIRS 2015 (100 km) Mean  [10^-9W/cm^2*sr]") + geom_histogram(binwidth=0.3, col='blue') + labs(title="Histogram (R=100km) VIRS 2015 Mean")
 ```
 
 ## Regression
 ```{r}
 mylm <- lm(sqm~viirs_2015_1_mean + viirs_2015_2_mean + viirs_2015_5_mean + viirs_2015_10_mean + viirs_2015_20_mean + viirs_2015_50_mean + viirs_2015_100_mean, data=lp_data)
-#mylm <- lm(sqm~viirs_2015_1_mean + viirs_2015_2_mean + viirs_2015_5_mean + viirs_2015_10_mean + viirs_2015_20_mean + viirs_2015_50_mean, data=lp_data)
 #anova(mylm)
 summary(mylm)
 ```
 
-
-```{r}
-mylm <- lm(sqm~log(viirs_2015_1_mean) + log(viirs_2015_2_mean) + log(viirs_2015_5_mean) + log(viirs_2015_10_mean) + log(viirs_2015_20_mean) + log(viirs_2015_50_mean) + log(viirs_2015_100_mean), data=lp_data)
-#mylm <- lm(sqm~log(viirs_2015_1_mean) + log(viirs_2015_2_mean) + log(viirs_2015_5_mean) + log(viirs_2015_10_mean) + log(viirs_2015_20_mean) + log(viirs_2015_50_mean), data=lp_data)
-#anova(mylm)
-summary(mylm)
-```
-
-```{r}
-mylm <- nls(sqm~a1*log(viirs_2015_1_mean) + a2*log(viirs_2015_2_mean) + a5*log(viirs_2015_5_mean) + a10*log(viirs_2015_10_mean) + a20*log(viirs_2015_20_mean) + a50*log(viirs_2015_50_mean) + a100*log(viirs_2015_100_mean), data=lp_data)
-#anova(mylm)
-summary(mylm)
