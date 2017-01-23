@@ -17,11 +17,13 @@ lp_data = read.csv('lp/db.csv', sep=';', dec='.', header=TRUE, stringsAsFactors 
 lp_data$sqm = 10.8 * 10^8 * 10 ^(- 0.4 *(lp_data$sqm))
 lp_data$time = as.POSIXct(lp_data$timemeasure, format="%Y-%m-%dT%H:%M:%S", tz="UTC")
 lp_data$moon_frac = moonAngle(lp_data$time, lp_data$lon, lp_data$lat)$illuminatedFraction
-lp_data$moon_alt = moonAngle(lp_data$time, lp_data$lon, lp_data$lat)$altitude
-lp_data$sun_alt = sunAngle(lp_data$time, lp_data$lon, lp_data$lat)$altitude
+lp_data$moon_alt = moonAngle(lp_data$time, lp_data$lon, lp_data$lat)$altitude + 90
+lp_data$sun_alt = sunAngle(lp_data$time, lp_data$lon, lp_data$lat)$altitude + 90
 lp_data = lp_data[lp_data$time > "2015-01-01", ]
 lp_data = lp_data[lp_data$viirs_2015_1_mean > 0,]
-lp_data = lp_data[with(lp_data, grepl("Piotr Guzik", lp_data$name)),]
+lp_data = lp_data[lp_data$sqm_l == 1,]
+lp_data = lp_data[lp_data$sqm < 40,]
+#lp_data = lp_data[with(lp_data, grepl("Guzik", lp_data$name)),]
 ```
 
 ## Including Plots
@@ -44,8 +46,32 @@ ggplot(lp_data, aes(y=sqm, x=viirs_2015_100_mean)) + ylab(ylabel) + xlab("VIRS 2
 
 ## Regression
 ```{r}
-mylm <- lm(sqm~viirs_2015_1_mean + viirs_2015_2_mean + viirs_2015_5_mean + viirs_2015_10_mean + viirs_2015_20_mean + viirs_2015_50_mean + viirs_2015_100_mean + moon_alt*moon_frac + sun_alt, data=lp_data)
+all_lm <- lm(sqm~viirs_2015_1_mean + viirs_2015_2_mean + viirs_2015_5_mean + viirs_2015_10_mean + viirs_2015_20_mean + viirs_2015_50_mean + viirs_2015_100_mean + moon_alt*moon_frac + sun_alt, data=lp_data)
 
-summary(mylm)
+summary(all_lm)
+plot(all_lm)
+```
+
+## Leaps
+
+```{r}
+library(leaps)
+leaps<-regsubsets(sqm~viirs_2015_1_mean + viirs_2015_2_mean + viirs_2015_5_mean + viirs_2015_10_mean + viirs_2015_20_mean + viirs_2015_50_mean + viirs_2015_100_mean + moon_alt*moon_frac + sun_alt, data=lp_data, nbest=1,  nvmax=11)
+
+summary(leaps)
+# plot a table of models showing variables in each model.
+# models are ordered by the selection statistic.
+plot(leaps,scale="r2")
+```
+
+## Regression variables subset
+```{r}
+subset_lm <- lm(sqm~viirs_2015_1_mean + viirs_2015_5_mean + viirs_2015_20_mean + viirs_2015_20_mean + viirs_2015_100_mean, data=lp_data)
+
+summary(subset_lm)
+plot(subset_lm)
+plot(lp_data$sqm, fitted(subset_lm)) + abline(0, 1)
+plot(lp_data$sqm, fitted(subset_lm), xlim = c(0, 20), ylim = c(0, 20)) + abline(0, 1)
+plot(lp_data$sqm, fitted(subset_lm), xlim = c(0, 10), ylim = c(0, 10)) + abline(0, 1)
 ```
 
