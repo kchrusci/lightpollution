@@ -4,11 +4,15 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
+
+#install.packages(c("ggplot", "knitr", "oce", "leaps", "corrplot"))
+
 knitr::opts_chunk$set(echo = TRUE)
 require(ggplot2)
 require(knitr)
 require(oce)
-#install.packages("")
+require(leaps)
+require(corrplot)
 #rm(list=ls())
 ```
 
@@ -18,6 +22,7 @@ lp_data$sqm = 10.8 * 10^8 * 10 ^(- 0.4 *(lp_data$sqm))
 lp_data$time = as.POSIXct(lp_data$timemeasure, format="%Y-%m-%dT%H:%M:%S", tz="UTC")
 lp_data$moon_frac = moonAngle(lp_data$time, lp_data$lon, lp_data$lat)$illuminatedFraction
 lp_data$moon_alt = moonAngle(lp_data$time, lp_data$lon, lp_data$lat)$altitude + 90
+lp_data$moon_frac_moon_alt = lp_data$moon_frac*lp_data$moon_alt
 lp_data$sun_alt = sunAngle(lp_data$time, lp_data$lon, lp_data$lat)$altitude + 90
 lp_data = lp_data[lp_data$time > "2015-01-01", ]
 lp_data = lp_data[lp_data$viirs_2015_1_mean > 0,]
@@ -34,6 +39,15 @@ ylabel = "[SQM(L) 10^-9W/cm^2*sr]"
 ggplot(lp_data, aes(x=sqm)) + xlab("SQM(L)") + geom_histogram(binwidth=0.1, col='blue') + labs(title="Histogram")
 
 ## VIRS(sqm) for 1, 2, 5, 10, 20, 50, 100 [km]
+ggplot(lp_data, aes(y=sqm, x=viirs_2015_1_mean)) + ylab(ylabel) + xlab("VIRS 2015 (1 km) Mean  [10^-9W/cm^2*sr]") + geom_point(color="blue", alpha=0.1)
+ggplot(lp_data, aes(y=sqm, x=viirs_2015_2_mean)) + ylab(ylabel) + xlab("VIRS 2015 (2 km) Mean  [10^-9W/cm^2*sr]") + geom_point(color="blue", alpha=0.1)
+ggplot(lp_data, aes(y=sqm, x=viirs_2015_5_mean)) + ylab(ylabel) + xlab("VIRS 2015 (5 km) Mean  [10^-9W/cm^2*sr]") + geom_point(color="blue", alpha=0.1)
+ggplot(lp_data, aes(y=sqm, x=viirs_2015_10_mean)) + ylab(ylabel) + xlab("VIRS 2015 (10 km) Mean [10^-9W/cm^2*sr]") + geom_point(color="blue", alpha=0.1)
+ggplot(lp_data, aes(y=sqm, x=viirs_2015_20_mean)) + ylab(ylabel) + xlab("VIRS 2015 (20 km) Mean [10^-9W/cm^2*sr]") + geom_point(color="blue", alpha=0.1)
+ggplot(lp_data, aes(y=sqm, x=viirs_2015_50_mean)) + ylab(ylabel) + xlab("VIRS 2015 (50 km) Mean [10^-9W/cm^2*sr]") + geom_point(color="blue", alpha=0.1)
+ggplot(lp_data, aes(y=sqm, x=viirs_2015_100_mean)) + ylab(ylabel) + xlab("VIRS 2015 (100 km) Mean [10^-9W/cm^2*sr]") + geom_point(color="blue", alpha=0.1)
+
+## VIRS(sqm) for 1, 2, 5, 10, 20, 50, 100 [km]
 ggplot(lp_data, aes(y=sqm, x=viirs_2015_1_mean)) + ylab(ylabel) + xlab("VIRS 2015 (1 km) Mean  [10^-9W/cm^2*sr]") + geom_point(color="blue", alpha=0.1) + xlim(0,10) + ylim(0,20)
 ggplot(lp_data, aes(y=sqm, x=viirs_2015_2_mean)) + ylab(ylabel) + xlab("VIRS 2015 (2 km) Mean  [10^-9W/cm^2*sr]") + geom_point(color="blue", alpha=0.1) + xlim(0,10) + ylim(0,20)
 ggplot(lp_data, aes(y=sqm, x=viirs_2015_5_mean)) + ylab(ylabel) + xlab("VIRS 2015 (5 km) Mean  [10^-9W/cm^2*sr]") + geom_point(color="blue", alpha=0.1) + xlim(0,10) +  ylim(0,20)
@@ -44,9 +58,18 @@ ggplot(lp_data, aes(y=sqm, x=viirs_2015_100_mean)) + ylab(ylabel) + xlab("VIRS 2
 
 ```
 
+# Correlation
+
+```{r}
+
+corrplot(cor(lp_data[,grep("viirs_2015_.*_mean|sqm$|moon|sun", colnames(lp_data))]), method="number")
+
+```
+
+
 ## Regression
 ```{r}
-all_lm <- lm(sqm~viirs_2015_1_mean + viirs_2015_2_mean + viirs_2015_5_mean + viirs_2015_10_mean + viirs_2015_20_mean + viirs_2015_50_mean + viirs_2015_100_mean + moon_alt*moon_frac + sun_alt, data=lp_data)
+all_lm <- lm(sqm~viirs_2015_1_mean + viirs_2015_2_mean + viirs_2015_5_mean + viirs_2015_10_mean + viirs_2015_20_mean + viirs_2015_50_mean + viirs_2015_100_mean + moon_frac + moon_alt + moon_frac_moon_alt + sun_alt, data=lp_data)
 
 summary(all_lm)
 plot(all_lm)
@@ -58,7 +81,6 @@ plot(all_lm)
 library(leaps)
 leaps<-regsubsets(sqm~viirs_2015_1_mean + viirs_2015_2_mean + viirs_2015_5_mean + viirs_2015_10_mean + viirs_2015_20_mean + viirs_2015_50_mean + viirs_2015_100_mean + moon_alt*moon_frac + sun_alt, data=lp_data, nbest=1,  nvmax=11)
 
-summary(leaps)
 # plot a table of models showing variables in each model.
 # models are ordered by the selection statistic.
 plot(leaps,scale="r2")
@@ -66,12 +88,71 @@ plot(leaps,scale="r2")
 
 ## Regression variables subset
 ```{r}
-subset_lm <- lm(sqm~viirs_2015_1_mean + viirs_2015_5_mean + viirs_2015_20_mean + viirs_2015_20_mean + viirs_2015_100_mean, data=lp_data)
+subset_lm <- lm(sqm~viirs_2015_1_mean + viirs_2015_5_mean + viirs_2015_20_mean + viirs_2015_100_mean, data=lp_data)
 
 summary(subset_lm)
 plot(subset_lm)
-plot(lp_data$sqm, fitted(subset_lm)) + abline(0, 1)
-plot(lp_data$sqm, fitted(subset_lm), xlim = c(0, 20), ylim = c(0, 20)) + abline(0, 1)
-plot(lp_data$sqm, fitted(subset_lm), xlim = c(0, 10), ylim = c(0, 10)) + abline(0, 1)
+plot(lp_data$sqm, fitted(subset_lm)) + abline(0, 1) + abline(subset_lm$coefficients[1], 0)
+plot(lp_data$sqm, fitted(subset_lm), xlim = c(0, 20), ylim = c(0, 20)) + abline(0, 1) + abline(subset_lm$coefficients[1], 0)
+plot(lp_data$sqm, fitted(subset_lm), xlim = c(0, 10), ylim = c(0, 10)) + abline(0, 1) + abline(subset_lm$coefficients[1], 0)
 ```
 
+## Places
+
+
+# Przy Arce
+
+```{r}
+
+lp_data_p = lp_data[with(lp_data, grepl("Przy Arce", lp_data$name)),]
+
+ggplot(lp_data_p, aes(x=sqm)) + xlab("SQM(L)") + geom_histogram(binwidth=0.1, col='blue') + labs(title="Histogram")
+boxplot(lp_data_p$sqm, predict(subset_lm, lp_data_p))
+
+## VIRS(sqm) for 1, 2, 5, 10, 20, 50, 100 [km]
+ggplot(lp_data_p, aes(y=sqm, x=sun_alt))+ geom_point(color="blue")
+ggplot(lp_data_p, aes(y=sqm, x=moon_alt))+ geom_point(color="blue")
+ggplot(lp_data_p, aes(y=sqm, x=moon_frac))+ geom_point(color="blue")
+ggplot(lp_data_p, aes(y=sqm, x=moon_alt*moon_frac))+ geom_point(color="blue")
+
+plot(regsubsets(sqm~moon_alt*moon_frac + sun_alt, data=lp_data_p, nbest=2,  nvmax=11),scale="r2")
+
+```
+
+# Krosno, Dębowa
+
+```{r}
+
+lp_data_p = lp_data[with(lp_data, grepl("Krosno, Dębowa", lp_data$name)),]
+
+ggplot(lp_data_p, aes(x=sqm)) + xlab("SQM(L)") + geom_histogram(binwidth=0.1, col='blue') + labs(title="Histogram")
+boxplot(lp_data_p$sqm, predict(subset_lm, lp_data_p))
+
+## VIRS(sqm) for 1, 2, 5, 10, 20, 50, 100 [km]
+ggplot(lp_data_p, aes(y=sqm, x=sun_alt))+ geom_point(color="blue")
+ggplot(lp_data_p, aes(y=sqm, x=moon_alt))+ geom_point(color="blue")
+ggplot(lp_data_p, aes(y=sqm, x=moon_frac))+ geom_point(color="blue")
+ggplot(lp_data_p, aes(y=sqm, x=moon_alt*moon_frac))+ geom_point(color="blue")
+
+plot(regsubsets(sqm~moon_alt*moon_frac + sun_alt, data=lp_data_p, nbest=2,  nvmax=11),scale="r2")
+
+```
+
+# Les Dalrymple
+
+```{r}
+
+lp_data_p = lp_data[with(lp_data, grepl("Les Dalrymple", lp_data$name)),]
+
+ggplot(lp_data_p, aes(x=sqm)) + xlab("SQM(L)") + geom_histogram(binwidth=0.1, col='blue') + labs(title="Histogram")
+boxplot(lp_data_p$sqm, predict(subset_lm, lp_data_p))
+
+## VIRS(sqm) for 1, 2, 5, 10, 20, 50, 100 [km]
+ggplot(lp_data_p, aes(y=sqm, x=sun_alt))+ geom_point(color="blue")
+ggplot(lp_data_p, aes(y=sqm, x=moon_alt))+ geom_point(color="blue")
+ggplot(lp_data_p, aes(y=sqm, x=moon_frac))+ geom_point(color="blue")
+ggplot(lp_data_p, aes(y=sqm, x=moon_alt*moon_frac))+ geom_point(color="blue")
+
+plot(regsubsets(sqm~moon_alt*moon_frac + sun_alt, data=lp_data_p, nbest=2,  nvmax=11),scale="r2")
+
+```
