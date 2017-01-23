@@ -25,9 +25,9 @@ lp_data$moon_alt = moonAngle(lp_data$time, lp_data$lon, lp_data$lat)$altitude + 
 lp_data$moon_frac_moon_alt = lp_data$moon_frac*lp_data$moon_alt
 lp_data$sun_alt = sunAngle(lp_data$time, lp_data$lon, lp_data$lat)$altitude + 90
 lp_data = lp_data[lp_data$time > "2015-01-01", ]
-lp_data = lp_data[lp_data$viirs_2015_1_mean > 0,]
 lp_data = lp_data[lp_data$sqm_l == 1,]
 lp_data = lp_data[lp_data$sqm < 40,]
+lp_data = lp_data[lp_data$viirs_2015_5_mean < 40,]
 #lp_data = lp_data[with(lp_data, grepl("Guzik", lp_data$name)),]
 ```
 
@@ -156,3 +156,41 @@ ggplot(lp_data_p, aes(y=sqm, x=moon_alt*moon_frac))+ geom_point(color="blue")
 plot(regsubsets(sqm~moon_alt*moon_frac + sun_alt, data=lp_data_p, nbest=2,  nvmax=11),scale="r2")
 
 ```
+
+## Regression variables subset POLY
+```{r}
+subset_lm <- lm(sqm~poly(viirs_2015_5_mean, 3), data=lp_data)
+
+summary(subset_lm)
+plot(subset_lm)
+plot(lp_data$sqm, fitted(subset_lm)) + abline(0, 1)
+plot(lp_data$sqm, fitted(subset_lm), xlim = c(0, 20), ylim = c(0, 20)) + abline(0, 1)
+plot(lp_data$sqm, fitted(subset_lm), xlim = c(0, 10), ylim = c(0, 10)) + abline(0, 1)
+
+ggplot(lp_data, aes(x=viirs_2015_5_mean, sqm)) + geom_point() + geom_smooth(method = "lm",formula = y~poly(x, 3))
+
+```
+
+
+## Regression variables subset SPLINES
+```{r}
+subset_lm <- lm(sqm~bs(viirs_2015_5_mean, knots=5, degree = 1), data=lp_data)
+#subset_lm <- lm(sqm~bs(viirs_2015_1_mean, knots=2, degree = 3) + bs(viirs_2015_5_mean, knots=2, degree = 3) + bs(viirs_2015_20_mean, knots=2, degree = 3), data=lp_data)
+
+summary(subset_lm)
+plot(subset_lm)
+plot(lp_data$sqm, fitted(subset_lm)) + abline(0, 1)
+plot(lp_data$sqm, fitted(subset_lm), xlim = c(0, 20), ylim = c(0, 20)) + abline(0, 1)
+plot(lp_data$sqm, fitted(subset_lm), xlim = c(0, 10), ylim = c(0, 10)) + abline(0, 1)
+
+ggplot(lp_data, aes(x=viirs_2015_5_mean, sqm)) + geom_point() + geom_smooth(method = "lm",formula = y~bs(x, knots=5, degree = 1))
+
+lp_data_p = lp_data[with(lp_data, grepl("Krosno, Dębowa", lp_data$name)),]
+boxplot(lp_data_p$sqm, predict(subset_lm, lp_data_p))
+
+lp_data_p = lp_data[with(lp_data, grepl("Les Dalrymple", lp_data$name)),]
+boxplot(lp_data_p$sqm, predict(subset_lm, lp_data_p))
+
+```
+
+
