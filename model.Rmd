@@ -13,6 +13,7 @@ require(knitr)
 require(oce)
 require(leaps)
 require(corrplot)
+require(DAAG)
 #rm(list=ls())
 ```
 
@@ -27,7 +28,7 @@ lp_data$sun_alt = sunAngle(lp_data$time, lp_data$lon, lp_data$lat)$altitude + 90
 lp_data = lp_data[lp_data$time > "2015-01-01", ]
 lp_data = lp_data[lp_data$sqm_l == 1,]
 lp_data = lp_data[lp_data$sqm < 40,]
-lp_data = lp_data[lp_data$viirs_2015_5_mean < 40,]
+#lp_data = lp_data[lp_data$viirs_2015_5_mean < 40,]
 #lp_data = lp_data[with(lp_data, grepl("Guzik", lp_data$name)),]
 ```
 
@@ -72,6 +73,8 @@ corrplot(cor(lp_data[,grep("viirs_2015_.*_mean|sqm$|moon|sun", colnames(lp_data)
 all_lm <- lm(sqm~viirs_2015_1_mean + viirs_2015_2_mean + viirs_2015_5_mean + viirs_2015_10_mean + viirs_2015_20_mean + viirs_2015_50_mean + viirs_2015_100_mean + moon_frac + moon_alt + moon_frac_moon_alt + sun_alt, data=lp_data)
 
 summary(all_lm)
+lp_data = cv.lm(lp_data, all_lm, m=4, printit=FALSE)
+sqrt(attr(lp_data, "ms"))
 plot(all_lm)
 ```
 
@@ -91,6 +94,8 @@ plot(leaps,scale="r2")
 subset_lm <- lm(sqm~viirs_2015_1_mean + viirs_2015_5_mean + viirs_2015_20_mean + viirs_2015_100_mean, data=lp_data)
 
 summary(subset_lm)
+lp_data = cv.lm(lp_data, subset_lm, m=4, printit=FALSE)
+sqrt(attr(lp_data, "ms"))
 plot(subset_lm)
 plot(lp_data$sqm, fitted(subset_lm)) + abline(0, 1) + abline(subset_lm$coefficients[1], 0)
 plot(lp_data$sqm, fitted(subset_lm), xlim = c(0, 20), ylim = c(0, 20)) + abline(0, 1) + abline(subset_lm$coefficients[1], 0)
@@ -174,8 +179,8 @@ ggplot(lp_data, aes(x=viirs_2015_5_mean, sqm)) + geom_point() + geom_smooth(meth
 
 ## Regression variables subset SPLINES
 ```{r}
-subset_lm <- lm(sqm~bs(viirs_2015_5_mean, knots=5, degree = 1), data=lp_data)
-#subset_lm <- lm(sqm~bs(viirs_2015_1_mean, knots=2, degree = 3) + bs(viirs_2015_5_mean, knots=2, degree = 3) + bs(viirs_2015_20_mean, knots=2, degree = 3), data=lp_data)
+subset_lm <- lm(sqm~bs(viirs_2015_5_mean, knots=1, degree = 1), data=lp_data)
+#subset_lm <- lm(sqm~bs(viirs_2015_1_mean, knots=1, degree = 1) + bs(viirs_2015_5_mean, knots=1, degree = 1) + bs(viirs_2015_20_mean, knots=1, degree = 1), data=lp_data)
 
 summary(subset_lm)
 plot(subset_lm)
@@ -183,7 +188,7 @@ plot(lp_data$sqm, fitted(subset_lm)) + abline(0, 1)
 plot(lp_data$sqm, fitted(subset_lm), xlim = c(0, 20), ylim = c(0, 20)) + abline(0, 1)
 plot(lp_data$sqm, fitted(subset_lm), xlim = c(0, 10), ylim = c(0, 10)) + abline(0, 1)
 
-ggplot(lp_data, aes(x=viirs_2015_5_mean, sqm)) + geom_point() + geom_smooth(method = "lm",formula = y~bs(x, knots=5, degree = 1))
+ggplot(lp_data, aes(x=viirs_2015_5_mean, sqm)) + geom_point() + geom_smooth(method = "lm",formula = y~bs(x, knots=1, degree = 1))
 
 lp_data_p = lp_data[with(lp_data, grepl("Krosno, Dębowa", lp_data$name)),]
 boxplot(lp_data_p$sqm, predict(subset_lm, lp_data_p))
