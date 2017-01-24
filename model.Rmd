@@ -1,11 +1,35 @@
 ---
 title: "Light pollution model"
-output: html_document
+output:
+  html_document: default
 ---
+
+#1. Cel projektu
+Celem projektu było utworzenie modelu, który na podstawie
+danych satelitarnych oszacuje, jak jasne jest niebo w danym
+miejscu.
+
+#2. Generowanie danych
+Dane zostały zebrane bezpośrednio przez nas ze strony http://www.lightpollutionmap.info
+Na podstawie pomiarów mierzonych z powierzchni Ziemi dedykowanym miernikiem SQM(L) Sky Quality Meter wysyłaliśmy zapytania do serwera dla obszarów 1, 2, 5, 10, 20, 50 oraz 100 km.
+Otrzymane dane w postaci JSON przetwarzaliśmy do formatu CSV.
+Pomiary VIIRS ze źródła http://ngdc.noaa.gov/eog/viirs/download_monthly.html
+są generowane przez Earth Observations Group (EOG) zawierają miesięczną średnią radiancję generowaną w postaci pliku TIFF przy użyciu Visible Infrared Imaging Radiometer Suite (VIIRS) Day/Night Band (DNB).
+
+#3. Dane surowe
+To dane w postaci pomiarów SQM [mag/arcsec^2] oraz dane dotyczace długości, szerokości geograficznej, daty i czasu pomiaru, nazwy zawierającej lokalizację oraz użytkownika.
+Ponadto dane zebrane z satelity w postaci całkowitej liczby pixeli w zdjęciu, sumy wartości, średniej, odchylenia standardowego, wartości minimalnej oraz maksymalnej.
+
+#4. Dane poprawne technicznie
+Wartość SQM zamieniona na radiancję emitowanej mocy przypadającej na jednostke powierzchni na jednostkę kąta bryłowego [W/cm^2*sr], przyjmująca wartości nieujemne.
+
+#5. Czyszczenie danych
+Czyszczenie danych odbywało się po przez dobór pomiarów wykonanych miernikiem SQM-L, zawierającym soczewki w przeciwieństwie do miernika SQM. Braliśmy pod uwagę pomiary o wartościach SQM mniejszych od 40. Uwzględnialismy rownież takie parametry jak wysokość Księżyca i Słońca nad horyzontem, rozświetlona część księżyca (faza) oraz ilość światła dochodzącego do Ziemi od Księżyca.
+
 
 ```{r setup, include=FALSE}
 
-#install.packages(c("ggplot", "knitr", "oce", "leaps", "corrplot"))
+#install.packages(c("ggplot", "knitr", "oce", "leaps", "corrplot", "splines", "DAAG"))
 
 knitr::opts_chunk$set(echo = TRUE)
 require(ggplot2)
@@ -14,7 +38,8 @@ require(oce)
 require(leaps)
 require(corrplot)
 require(DAAG)
-#rm(list=ls())
+require(splines)
+rm(list=ls())
 ```
 
 ```{r}
@@ -32,7 +57,7 @@ lp_data = lp_data[lp_data$sqm < 40,]
 #lp_data = lp_data[with(lp_data, grepl("Guzik", lp_data$name)),]
 ```
 
-## Including Plots
+#6. Analiza danych
 
 ```{r plot, echo=TRUE}
 #ylabel = "SQM(L) [mag/arcsec^2]"
@@ -84,7 +109,7 @@ plot(all_lm)
 library(leaps)
 leaps<-regsubsets(sqm~viirs_2015_1_mean + viirs_2015_2_mean + viirs_2015_5_mean + viirs_2015_10_mean + viirs_2015_20_mean + viirs_2015_50_mean + viirs_2015_100_mean + moon_alt*moon_frac + sun_alt, data=lp_data, nbest=1,  nvmax=11)
 
-# plot a table of models showing variables in each model.
+# Plot a table of models showing variables in each model.
 # models are ordered by the selection statistic.
 plot(leaps,scale="r2")
 ```
@@ -158,7 +183,7 @@ ggplot(lp_data_p, aes(y=sqm, x=moon_alt))+ geom_point(color="blue")
 ggplot(lp_data_p, aes(y=sqm, x=moon_frac))+ geom_point(color="blue")
 ggplot(lp_data_p, aes(y=sqm, x=moon_alt*moon_frac))+ geom_point(color="blue")
 
-plot(regsubsets(sqm~moon_alt*moon_frac + sun_alt, data=lp_data_p, nbest=2,  nvmax=11),scale="r2")
+#plot(regsubsets(sqm~moon_alt*moon_frac + sun_alt, data=lp_data_p, nbest=2,  nvmax=11),scale="r2")
 
 ```
 
